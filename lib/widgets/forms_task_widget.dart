@@ -3,8 +3,9 @@ import '../model/task.dart';
 
 class FormsTaskWidget extends StatefulWidget {
   final Function(Task) onTaskCreated;
+  final Function() onLoadTask;
 
-  const FormsTaskWidget({super.key, required this.onTaskCreated});
+  const FormsTaskWidget({super.key, required this.onTaskCreated, required this.onLoadTask});
 
   @override
   State<FormsTaskWidget> createState() => _FormsTaskWidgetState();
@@ -103,14 +104,15 @@ class _FormsTaskWidgetState extends State<FormsTaskWidget> {
                     }
                     if (_formKey.currentState!.validate()) {
                       final newTask = Task(
-                        _titleController.text,
-                        0.0,
-                        _selectedStars,
+                        title: _titleController.text,
+                        progress: 0.0,
+                        maxStars: _selectedStars,
                         imageUrl: _imageUrlController.text.isNotEmpty
                             ? _imageUrlController.text
                             : null,
                       );
                       widget.onTaskCreated(newTask);
+                      widget.onLoadTask();
                       Navigator.of(context).pop();
                     }
                   },
@@ -138,6 +140,7 @@ class _FormsTaskWidgetState extends State<FormsTaskWidget> {
               icon: const Icon(Icons.close),
               onPressed: () {
                 Navigator.of(context).pop();
+                
               },
             ),
           ),

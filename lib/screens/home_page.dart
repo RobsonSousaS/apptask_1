@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model/task.dart';
+import '../service/task_service.dart';
 import '../widgets/card_widget.dart';
 import '../widgets/forms_task_widget.dart';
 
@@ -13,39 +14,80 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Task> tasks = [
-    Task("Aprender Flutter", 0, 4),
-    Task("Estudar Dart", 0, 1),
-  ];
+  final List<Task> tasks = [];
+  final TaskService taskService = TaskService();
 
-  void onLevelUp(Task task) {
-    setState(() {
-      if (task.lvl < task.maxLevel) {
-        task.lvl++;
-        task.progress = task.lvl / task.maxLevel;
+  @override
+  void initState() {
+    super.initState();
+    loadTasks();
+  }
+
+  void loadTasks() async {
+    try {
+      List<Task> fetchedTasks = await taskService.fetchTasks();
+      setState(() {
+        tasks.addAll(fetchedTasks);
+      });
+    } catch (e) {
+      print("Error loading tasks: $e");
+    }
+  }
+
+  void addTask(Task task) async {
+    try {
+      Task newTask = await taskService.createTask(task);
+      setState(() {
+        tasks.add(newTask);
+      });
+    } catch (e) {
+      print("Error adding task: $e");
+    }
+  }
+
+  void editTask(Task updatedTask) async {
+    try {
+      Task updated = await taskService.updateTask(updatedTask);
+      setState(() {
+        final index = tasks.indexWhere((task) => task.id == updated.id);
+        if (index != -1) {
+          tasks[index] = updated;
+        }
+      });
+    } catch (e) {
+      print("Error updating task: $e");
+    }
+  }
+
+  void deleteTask(int index) async {
+    try {
+      final task = tasks[index];
+      if (task.id == null) {
+        print("Error: task does not have an ID.");
+        return;
       }
-    });
+      await taskService.deleteTask(task.id!);
+
+      setState(() {
+        tasks.removeAt(index);
+      });
+    } catch (e) {
+      print("Error deleting task: $e");
+    }
   }
 
-  void addTask(Task task) {
-    setState(() {
-      tasks.add(task);
-    });
-  }
-
-  void editTask(Task updatedTask) {
-    setState(() {
-      final index = tasks.indexWhere((task) => task.title == updatedTask.title);
-      if (index != -1) {
-        tasks[index] = updatedTask;
-      }
-    });
-  }
-
-  void deleteTask(int index) {
-    setState(() {
-      tasks.removeAt(index);
-    });
+  void onLevelUp(Task task) async {
+    try {
+      Task updatedTask = await taskService.levelUpTask(task.id!);
+      setState(() {
+        final index = tasks.indexWhere((t) => t.id == updatedTask.id);
+        if (index != -1) {
+          tasks[index] = updatedTask;
+        }
+      });
+    } catch (e) {
+      print("Error leveling up task: $e");
+    }
   }
 
   @override
@@ -89,6 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: FormsTaskWidget(
                     onTaskCreated: (newTask) {
                       addTask(newTask);
+                      
                     },
                   ),
                 ),

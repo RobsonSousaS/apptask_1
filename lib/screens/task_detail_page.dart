@@ -1,5 +1,5 @@
-import 'package:apptask_1/model/task.dart';
 import 'package:flutter/material.dart';
+import '../model/task.dart';
 
 class TaskDetailPage extends StatefulWidget {
   final Task task;
@@ -26,7 +26,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.task.title);
-    _imageUrlController = TextEditingController(text: widget.task.imageUrl);
+    _imageUrlController =
+        TextEditingController(text: widget.task.imageUrl ?? '');
     _selectedStars = widget.task.maxStars;
   }
 
@@ -82,12 +83,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                widget.task.title = _titleController.text;
-                widget.task.imageUrl = _imageUrlController.text;
-                widget.task.maxStars = _selectedStars;
-                widget.task.lvl = 0;
-                widget.task.progress = 0;
-                widget.onTaskEdited(widget.task);
+                Task updatedTask = Task(
+                  id: widget.task.id,
+                  title: _titleController.text,
+                  imageUrl: _imageUrlController.text,
+                  maxStars: _selectedStars,
+                  lvl: widget.task.lvl,
+                  progress:
+                      widget.task.progress,
+                );
+
+                widget.onTaskEdited(updatedTask);
+
                 Navigator.of(context).pop();
               },
               child: const Text('Salvar Alterações'),
